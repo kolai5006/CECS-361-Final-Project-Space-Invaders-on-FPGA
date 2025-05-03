@@ -49,15 +49,15 @@ module pixel_generation(
     parameter BLACK  = 12'h000;    
 
     //Player parameters
-    parameter PLAYER_SIZE = 32;
+    parameter PLAYER_SIZE = 32;           // Reduced from 32
     parameter X_START = 320;
-    parameter Y_START = 422;
+    parameter Y_START = 420;              // Moved up slightly
     
     //Player Boundaries:
-    parameter X_LEFT = 32;
-    parameter X_RIGHT = 608;
-    parameter Y_TOP = 68;
-    parameter Y_BOTTOM = 452;
+    parameter X_LEFT = 36;                // Increased safety margin
+    parameter X_RIGHT = 604;              // Decreased for safety margin
+    parameter Y_TOP = 70;                 // Increased safety margin
+    parameter Y_BOTTOM = 440;             // Decreased for safety margin
     
     //player boundaries signals
     wire [9:0] x_plyr_L, x_plyr_R; //player horizontal boundaries
@@ -113,42 +113,37 @@ module pixel_generation(
     
     // === SHOOTING CONTROL ===
     
-    reg shoot_pressed = 0;
-        
-    always @(posedge clk or posedge reset) begin
-        if (reset)
-            shoot_pressed <= 0;
-        else if (refresh_tick) begin
-            if (shoot && !shoot_pressed)
-                shoot_pressed <= 1;  // Button was just pressed
-            else if (!shoot)
-                shoot_pressed <= 0;  // Button released
-        end
-    end
-        
-    // Shot control signal
+    // Shot control signals
     wire shot_pixel;
-    wire shot_active;  // Active shot signal
-    wire shot_hit;     // Indicates a shot hit an alien
-    wire game_over_crtl; // Game over signal from alien controller
-    
-    // Track position of active shot for alien collision detection
+    wire shot_active;
     reg [10:0] shot_x_pos, shot_y_pos;
-        
-    // Enable shot when: button pressed AND not already pressed AND no active shot
-    wire shot_enable = shoot && !shoot_pressed && !shot_active;
+    
+    // Track hit to avoid multiple hit detection
+    wire shot_hit; // Signal from alien controller
     
     // === ALIEN CONTROLLER ===
     
     wire alien_on;
     wire [11:0] alien_rgb;
+    wire game_over_crtl; // Game over signal from alien controller
     
-    // Instantiate the updated alien controller
+    // Register shot position for collision detection
+    always @(posedge clk) begin
+        if (shot_active && shot_pixel) begin
+            shot_x_pos <= x;
+            shot_y_pos <= y;
+        end
+    end
+    
+    // Instantiate the alien controller with safer parameters
     alien_controller #(
-        .Y_START(80),                // Adjust this value to change starting height
-        .ALIEN_VELOCITY(1),          // Speed of movement
-        .MOVE_INTERVAL(900000),      // Time between movements (lower = faster)
-        .X_START(100)
+        .Y_START(80),
+        .ALIEN_VELOCITY(1),
+        .MOVE_INTERVAL(900000),
+        .X_START(100),
+        .X_LEFT(36),
+        .X_RIGHT(604),
+        .Y_BOTTOM(400)
     ) alien_ctrl_inst (
         .clk(clk),
         .reset(reset),
@@ -159,7 +154,7 @@ module pixel_generation(
         .shot_y(shot_y_pos),
         .alien_on(alien_on),
         .alien_rgb(alien_rgb),
-        .shot_hit(shot_hit),         // Output when a shot hits an alien
+        .shot_hit(shot_hit),
         .game_over(game_over_crtl)
     );
     
@@ -167,28 +162,23 @@ module pixel_generation(
     assign game_over = game_over_crtl;
     assign alien_hit = shot_hit;
     
-    // Shot instance with proper connection to alien_hit
+    // Enable shot logic - can shoot when shoot button pressed and no active shot
+    wire shot_enable = shoot && !shot_active;
+    
+    // Instantiate the modified shot module
     shot player_shot (
-        .s_clk(clk),                      // fast clock (pixel or VGA clock)
-        .clk_0(refresh_tick),             // slow clock (1 tick per frame)
-        .en(shot_enable),                 // Enable with our new logic
-        .orig_x(x_plyr_reg + (PLAYER_SIZE / 2) - 2), // fire from middle of player
-        .orig_y(y_plyr_t),                // top of player
+        .s_clk(clk),
+        .clk_0(refresh_tick),
+        .en(shot_enable),
+        .orig_x(x_plyr_reg + (PLAYER_SIZE / 2)),
+        .orig_y(y_plyr_t),
         .pixel_x(x),
         .pixel_y(y),
-        .ship_pixel(1'b0),                // Not using ship collision in this design
-        .alien_hit(shot_hit),             // Connect to alien controller's shot_hit
+        .ship_pixel(1'b0),
+        .alien_hit(shot_hit),
         .shot_pixel(shot_pixel),
-        .shot_active(shot_active)         // Track if shot is active
+        .shot_active(shot_active)
     );
-    
-    // Update shot position for collision detection only when active
-    always @(posedge clk) begin
-        if (shot_active && shot_pixel) begin
-            shot_x_pos <= x;
-            shot_y_pos <= y;
-        end
-    end
     
     // === GAME STATUS ===
     reg [7:0] score;
@@ -200,7 +190,7 @@ module pixel_generation(
             score <= score + 1;
     end
 
-    //Game Border Positions and Code
+    //Game Border Positions and Code - with adjusted safe areas
     wire left_wall, right_wall, top_border, bottom_border, background;
     
     assign left_wall  = ((x >= 0) && (x < 32)  && (y >= 32) && (y < 452));
@@ -215,7 +205,6 @@ module pixel_generation(
             rgb = BLACK;
             
         else if (alien_on && background)
-            //rgb = alien_rgb;
             if (&alien_rgb)
                 rgb = BLACK;
             else
@@ -225,7 +214,7 @@ module pixel_generation(
             rgb = WHITE;
             
         // Draw player 
-        else if (player_on && background)  // any non-zero bits in rom_data means visible
+        else if (player_on && background)
             if (&rom_data)
                 rgb = BLACK;
             else
