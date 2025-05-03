@@ -3,13 +3,13 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 05/01/2025 12:46:05 PM
+// Create Date: 04/28/2025
 // Design Name: 
 // Module Name: shot
-// Project Name: 
+// Project Name: Space Invaders
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Player shot module with one-alien-per-shot limit
 // 
 // Dependencies: 
 // 
@@ -18,69 +18,97 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-module shot (
-    input s_clk, clk_0, en,
-    input [10:0] orig_x, orig_y,
-    input [10:0] pixel_x, pixel_y,
-    input ship_pixel,         // Now used to detect ship collisions
-    input alien_hit,          // New input signal from alien_controller
-    output reg shot_pixel,
-    output shot_active        // Signal to indicate if shot is active
+
+module shot(
+    input wire s_clk,           // System clock
+    input wire clk_0,           // Refresh tick (60Hz)
+    input wire en,              // Enable signal to fire a new shot
+    input wire [9:0] orig_x,    // Origin X position (from player)
+    input wire [9:0] orig_y,    // Origin Y position (from player)
+    input wire [9:0] pixel_x,   // Current pixel X for rendering
+    input wire [9:0] pixel_y,   // Current pixel Y for rendering
+    input wire ship_pixel,      // Player ship pixel (not used in this implementation)
+    input wire alien_hit,       // Signal from alien controller when hit detected
+    output reg shot_pixel,      // Current pixel is part of the shot (for display)
+    output reg shot_active      // Shot is currently active in the game
 );
+
+    // Shot parameters
+    parameter SHOT_WIDTH = 2;   // Width of the shot (reduced)
+    parameter SHOT_HEIGHT = 8;  // Height of the shot (reduced)
+    parameter SHOT_VELOCITY = 3; // Pixels per frame the shot moves (reduced)
+    parameter Y_TOP_LIMIT = 40; // Top boundary where shot disappears (increased safety margin)
+
+    // Shot position registers
+    reg [9:0] shot_x_reg, shot_y_reg;
+    reg [9:0] shot_x_next, shot_y_next;
+
+    // Shot boundaries
+    wire [9:0] shot_x_l, shot_x_r; // Left and right boundaries
+    wire [9:0] shot_y_t, shot_y_b; // Top and bottom boundaries
     
-    reg [10:0] shot_x, shot_y;
-    reg enabled;              // Track if shot is enabled
-    
-    parameter shot_speed = 2;
-    parameter SHOT_HEIGHT = 10;
-    parameter SHOT_WIDTH = 4;
-    
-    // Output active state based on enabled state
-    assign shot_active = enabled;
-     
-    // Shot position update
-    always @(posedge clk_0) begin
-        if (!enabled && en) begin
-            // Initialize new shot when enabled and previous shot is inactive
-            shot_x <= orig_x;
-            shot_y <= orig_y;
-            enabled <= 1'b1;
+    assign shot_x_l = shot_x_reg;
+    assign shot_x_r = shot_x_reg + SHOT_WIDTH - 1;
+    assign shot_y_t = shot_y_reg;
+    assign shot_y_b = shot_y_reg + SHOT_HEIGHT - 1;
+
+    // Initialize shot state
+    initial begin
+        shot_active = 0;
+        shot_x_reg = 0;
+        shot_y_reg = 0;
+    end
+
+    // Shot state update logic
+    always @(posedge s_clk) begin
+        shot_x_reg <= shot_x_next;
+        shot_y_reg <= shot_y_next;
+    end
+
+    // Shot movement and activation logic
+    always @* begin
+        // Default: maintain current position
+        shot_x_next = shot_x_reg;
+        shot_y_next = shot_y_reg;
+
+        // Shot movement on refresh tick (once per frame)
+        if (clk_0) begin
+            if (shot_active) begin
+                // Move shot upward
+                shot_y_next = shot_y_reg - SHOT_VELOCITY;
+                
+                // Check if shot reaches top of screen
+                if (shot_y_t <= Y_TOP_LIMIT) begin
+                    shot_active = 0; // Deactivate when reaching top
+                end
+            end
+            else if (en) begin
+                // Activate new shot with boundary checks
+                shot_active = 1;
+                // Ensure shot stays within valid X boundaries (32 to 608)
+                shot_x_next = (orig_x < 32 + SHOT_WIDTH/2) ? 32 : 
+                             ((orig_x > 608 - SHOT_WIDTH/2) ? 608 - SHOT_WIDTH : orig_x - (SHOT_WIDTH/2));
+                shot_y_next = orig_y - SHOT_HEIGHT;    // Start from player top
+            end
         end
-        else if (enabled) begin
-            if (alien_hit) begin
-                // Alien was hit by this shot, deactivate immediately
-                enabled <= 1'b0;
-            end
-            else if (shot_y <= shot_speed) begin
-                // Shot reached top of screen
-                enabled <= 1'b0;  // Disable shot when it reaches top
-            end
-            else begin
-                // Continue moving shot upward
-                shot_y <= shot_y - shot_speed; // Shot moves up towards enemies
-            end
-            
-            // Handle collision with ship (if implementing ship-shot collisions)
-            if (ship_pixel && shot_pixel) begin
-                enabled <= 1'b0;  // Disable shot on ship collision
-            end
+        
+        // Deactivate shot immediately when alien is hit
+        if (alien_hit && shot_active) begin
+            shot_active = 0;
         end
     end
-    
-    // Shot pixel rendering
-    always @(*) begin
-        if(enabled) begin
-            if (pixel_y >= shot_y - SHOT_HEIGHT && pixel_y < shot_y) begin
-                if (pixel_x >= shot_x && pixel_x < shot_x + SHOT_WIDTH)
-                    shot_pixel = 1'b1;
-                else
-                    shot_pixel = 1'b0;
-            end
-            else
-                shot_pixel = 1'b0;
+
+    // Shot rendering logic
+    always @* begin
+        // Default: pixel is not part of shot
+        shot_pixel = 0;
+        
+        // Check if current pixel is within shot boundaries and shot is active
+        if (shot_active &&
+            (shot_x_l <= pixel_x) && (pixel_x <= shot_x_r) &&
+            (shot_y_t <= pixel_y) && (pixel_y <= shot_y_b)) begin
+            shot_pixel = 1;
         end
-        else
-            shot_pixel = 1'b0;
     end
-    
+
 endmodule
