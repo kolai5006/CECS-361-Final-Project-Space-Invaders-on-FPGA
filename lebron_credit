@@ -21,7 +21,7 @@ module lebron_credit(
     localparam LEBRON_Y_START = 440;  // Lowered from 430 to 440
     localparam LEBRON_Y_END = LEBRON_Y_START + SMALL_LETTER_HEIGHT;
     
-    // Calculate starting X position to center "♥ LEBRON VER ♥" (14 characters with extra space)
+    // Calculate starting X position to center "? LEBRON VER ?" (14 characters with extra space)
     localparam LEBRON_TOTAL_WIDTH = 14 * SMALL_LETTER_WIDTH + 13 * SMALL_LETTER_SPACING;
     localparam LEBRON_X_START = (SCREEN_WIDTH - LEBRON_TOTAL_WIDTH) / 2;
     
@@ -35,7 +35,7 @@ module lebron_credit(
     reg [4:0] current_char;
     reg [10:0] char_x; // Position within current character
     
-    // Variables for "♥ LEBRON VER ♥" text
+    // Variables for "? LEBRON VER ?" text
     reg [10:0] char_start_x;
     reg [4:0] i;  // Counter for the for loop
     
@@ -45,13 +45,13 @@ module lebron_credit(
         rgb_out = COLOR_BLACK;
         
         if (video_on) begin
-            // Check if we're in the "♥ LEBRON VER ♥" row
+            // Check if we're in the "? LEBRON VER ?" row
             in_lebron_row = (pixel_y >= LEBRON_Y_START && pixel_y < LEBRON_Y_END);
             
             // Initialize to invalid character
             current_char = 31;
             
-            // Draw "♥ LEBRON VER ♥" text
+            // Draw "? LEBRON VER ?" text
             if (in_lebron_row) begin
                 // Check each character position manually
                 for (i = 0; i < 14; i = i + 1) begin // Changed from 13 to 14 characters
@@ -70,12 +70,12 @@ module lebron_credit(
         end
     end
     
-    // Function to map position to character for "♥ LEBRON VER ♥"
+    // Function to map position to character for "? LEBRON VER ?"
     function [4:0] get_lebron_char;
         input [4:0] pos;
         begin
             case (pos)
-                0: get_lebron_char = 20;  // '♥' (heart)
+                0: get_lebron_char = 20;  // '?' (heart)
                 1: get_lebron_char = 31;  // ' ' (space)
                 2: get_lebron_char = 11;  // 'L'
                 3: get_lebron_char = 4;   // 'E'
@@ -88,7 +88,7 @@ module lebron_credit(
                 10: get_lebron_char = 4;  // 'E'
                 11: get_lebron_char = 17; // 'R'
                 12: get_lebron_char = 31; // ' ' (space) - Added space before the final heart
-                13: get_lebron_char = 20; // '♥' (heart)
+                13: get_lebron_char = 20; // '?' (heart)
                 default: get_lebron_char = 31; // Invalid
             endcase
         end
@@ -193,7 +193,7 @@ module lebron_credit(
                     end
                 end
                 
-                20: begin // '♥' (heart) - Improved heart shape
+                20: begin // '?' (heart) - Improved heart shape
                     // Heart shape centered in character space
                     center_x = SMALL_LETTER_WIDTH / 2;
                     center_y = SMALL_LETTER_HEIGHT / 3;
