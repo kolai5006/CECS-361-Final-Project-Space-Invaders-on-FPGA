@@ -22,6 +22,7 @@
 module alien_controller(
     input wire clk,
     input wire reset,
+    input wire pause,                      // Add pause input
     input wire [10:0] pixel_x, pixel_y,    // VGA pixel position
     input wire shot_active,                // Is player's shot active
     input wire [10:0] shot_x, shot_y,      // Position of player's shot
@@ -111,7 +112,7 @@ module alien_controller(
             for (r = 0; r < N_ROWS; r = r + 1)
                 for (c = 0; c < N_COLS; c = c + 1)
                     alive[r][c] <= 1'b1;
-        end else begin
+        end else if (!pause) begin    // Only update when not paused
             // Increment counters
             if (move_counter == MOVE_INTERVAL)
                 move_counter <= 0;
