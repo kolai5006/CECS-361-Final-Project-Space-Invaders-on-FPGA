@@ -28,7 +28,8 @@ module pixel_generation(
     input [9:0] x, y,                          // Current pixel coordinates
     output reg [11:0] rgb,                     // Changed to reg type
     output alien_hit,                          // Alien hit signal
-    output game_over                           // Game over signal
+    output game_over,                          // Game over signal
+    output win                                 // Win signal
 );
     
     //60hz Refresh tick
@@ -124,6 +125,7 @@ module pixel_generation(
     wire alien_on;
     wire [11:0] alien_rgb;
     wire game_over_crtl; // Game over signal from alien controller
+    wire win_ctrl;       // Win signal from alien controller
     
     // Register shot position for collision detection
     always @(posedge clk) begin
@@ -140,26 +142,28 @@ module pixel_generation(
         .MOVE_INTERVAL(900000),
         .X_START(100),
         .X_LEFT(36),
-        .X_RIGHT(604),
-        .Y_BOTTOM(400)
+        .X_RIGHT(604)
     ) alien_ctrl_inst (
         .clk(clk),
         .reset(reset),
         .pause(pause),           // Add pause signal
         .pixel_x(x),     
         .pixel_y(y),
+        .player_y(y_plyr_t),     // NEW: Pass player's y position for game over check
         .shot_active(shot_active),
         .shot_x(shot_x_pos),
         .shot_y(shot_y_pos),
         .alien_on(alien_on),
         .alien_rgb(alien_rgb),
         .shot_hit(shot_hit),
-        .game_over(game_over_crtl)
+        .game_over(game_over_crtl),
+        .win(win_ctrl)           // Connect win signal
     );
     
     // Connect module signals to outputs
     assign game_over = game_over_crtl;
     assign alien_hit = shot_hit;
+    assign win = win_ctrl;       // Connect win signal to output
     
     // Enable shot logic - can shoot when shoot button pressed and no active shot
     // Only enable shooting when not paused
