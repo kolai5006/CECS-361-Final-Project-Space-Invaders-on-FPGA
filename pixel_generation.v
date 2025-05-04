@@ -19,20 +19,17 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module pixel_generation(
-    input clk,
-    input video_on,
-    input reset,
-    input pause,            // Add pause input signal
-    input left,
-    input right,
-    input shoot,
-    input [9:0] x, y,
-    output reg [11:0] rgb,
-    output wire game_over,
-    output wire alien_hit     
-    );
+    input clk,                                 // 100 MHz clock
+    input reset,                               // Reset button
+    input pause,                               // Pause signal (now includes !game_start)
+    input left, right, shoot,                  // Control buttons 
+    input video_on,                            // VGA video_on signal
+    input [9:0] x, y,                          // Current pixel coordinates
+    output reg [11:0] rgb,                     // Changed to reg type
+    output alien_hit,                          // Alien hit signal
+    output game_over                           // Game over signal
+);
     
     //60hz Refresh tick
     wire refresh_tick;
