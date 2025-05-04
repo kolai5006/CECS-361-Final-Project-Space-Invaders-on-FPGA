@@ -45,7 +45,7 @@ module alien_controller(
     parameter X_RIGHT = 604;               // Right border for movement
     parameter X_GAP = 10;                  // Space between aliens horizontally
     parameter Y_GAP = 10;                  // Space between aliens vertically
-    parameter ALIEN_VELOCITY = 1;          // Pixels per move
+    parameter ALIEN_VELOCITY = 5;          // Pixels per move
     parameter MOVE_INTERVAL = 800000;      // Clock cycles between moves (adjust for speed)
 
     // Variables for alien block
