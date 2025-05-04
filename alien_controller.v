@@ -24,12 +24,14 @@ module alien_controller(
     input wire reset,
     input wire pause,                      // Add pause input
     input wire [10:0] pixel_x, pixel_y,    // VGA pixel position
+    input wire [10:0] player_y,            // NEW: Player's y position for game over check
     input wire shot_active,                // Is player's shot active
     input wire [10:0] shot_x, shot_y,      // Position of player's shot
     output reg alien_on,                   // Alien pixel is visible
     output reg [11:0] alien_rgb,           // Color output (12-bit RGB)
     output reg shot_hit,                   // Pulse high when an alien is hit
-    output reg game_over                   // Signal when aliens reach bottom
+    output reg game_over,                  // Signal when aliens reach bottom
+    output reg win                         // Signal when all aliens are destroyed
 );
 
     // Parameters defined inside the module
@@ -41,7 +43,6 @@ module alien_controller(
     parameter Y_START = 80;                // Starting Y position of aliens
     parameter X_LEFT = 36;                 // Left border for movement
     parameter X_RIGHT = 604;               // Right border for movement
-    parameter Y_BOTTOM = 400;              // Bottom border for game over
     parameter X_GAP = 10;                  // Space between aliens horizontally
     parameter Y_GAP = 10;                  // Space between aliens vertically
     parameter ALIEN_VELOCITY = 1;          // Pixels per move
@@ -105,6 +106,7 @@ module alien_controller(
             refresh_counter <= 0;
             shot_hit <= 0;
             game_over <= 0;
+            win <= 0;             // Initialize win signal to 0
             any_aliens_alive <= 1;
             collision_detected <= 0;
 
@@ -138,6 +140,7 @@ module alien_controller(
                         aliens_count = aliens_count + 1;
             
             any_aliens_alive <= (aliens_count > 0);
+            win <= (aliens_count == 0);    // Set win signal when all aliens are defeated
 
             // Move aliens based on move_tick
             if (move_tick && any_aliens_alive) begin
@@ -159,8 +162,9 @@ module alien_controller(
                     end
                 end
                 
-                // Check if aliens reached bottom (game over)
-                if (y_offset + BLOCK_HEIGHT >= Y_BOTTOM)
+                // NEW: Check if aliens reached player's y position (game over)
+                // We check if the bottom of the alien block has reached the player's y level
+                if (y_offset + BLOCK_HEIGHT >= player_y)
                     game_over <= 1;
             end
 
@@ -223,6 +227,5 @@ module alien_controller(
             alien_rgb <= 12'h000;
         end
     end
-
 
 endmodule
