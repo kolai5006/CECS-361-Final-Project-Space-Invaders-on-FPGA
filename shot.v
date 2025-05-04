@@ -39,10 +39,17 @@ module shot(
     parameter SHOT_HEIGHT = 8;  // Height of the shot (reduced)
     parameter SHOT_VELOCITY = 3; // Pixels per frame the shot moves (reduced)
     parameter Y_TOP_LIMIT = 40; // Top boundary where shot disappears (increased safety margin)
+    
+    // Screen boundaries
+    parameter X_MIN = 32;       // Left boundary
+    parameter X_MAX = 607;      // Right boundary
+    parameter Y_MIN = 36;       // Top boundary
+    parameter Y_MAX = 451;      // Bottom boundary
 
     // Shot position registers
     reg [9:0] shot_x_reg, shot_y_reg;
     reg [9:0] shot_x_next, shot_y_next;
+    reg shot_active_next; // Next state for shot_active
 
     // Shot boundaries
     wire [9:0] shot_x_l, shot_x_r; // Left and right boundaries
@@ -60,44 +67,52 @@ module shot(
         shot_y_reg = 0;
     end
 
-    // Shot state update logic
+    // Shot state update logic - now includes shot_active
     always @(posedge s_clk) begin
         if (!pause) begin        // Only update when not paused
             shot_x_reg <= shot_x_next;
             shot_y_reg <= shot_y_next;
+            shot_active <= shot_active_next; // Update shot_active with next state
         end
     end
 
     // Shot movement and activation logic
     always @* begin
-        // Default: maintain current position
+        // Default: maintain current position and state
         shot_x_next = shot_x_reg;
         shot_y_next = shot_y_reg;
+        shot_active_next = shot_active; // Default: keep current active state
 
+        // Deactivate shot immediately when alien is hit
+        if (alien_hit && shot_active) begin
+            shot_active_next = 0;
+        end
         // Shot movement on refresh tick (once per frame)
-        if (clk_0 && !pause) begin   // Only move when not paused
+        else if (clk_0 && !pause) begin
             if (shot_active) begin
                 // Move shot upward
                 shot_y_next = shot_y_reg - SHOT_VELOCITY;
                 
                 // Check if shot reaches top of screen
                 if (shot_y_t <= Y_TOP_LIMIT) begin
-                    shot_active = 0; // Deactivate when reaching top
+                    shot_active_next = 0; // Deactivate when reaching top
                 end
             end
             else if (en) begin
-                // Activate new shot with boundary checks
-                shot_active = 1;
-                // Ensure shot stays within valid X boundaries (32 to 608)
-                shot_x_next = (orig_x < 32 + SHOT_WIDTH/2) ? 32 : 
-                             ((orig_x > 608 - SHOT_WIDTH/2) ? 608 - SHOT_WIDTH : orig_x - (SHOT_WIDTH/2));
-                shot_y_next = orig_y - SHOT_HEIGHT;    // Start from player top
+                // Activate new shot with strict boundary checks
+                shot_active_next = 1;
+                
+                // Calculate centered shot position
+                shot_x_next = orig_x - (SHOT_WIDTH/2);
+                
+                // Ensure shot stays within valid X boundaries
+                if (shot_x_next < X_MIN) shot_x_next = X_MIN;
+                if (shot_x_next > X_MAX - SHOT_WIDTH) shot_x_next = X_MAX - SHOT_WIDTH;
+                
+                // Start from player top with boundary check
+                shot_y_next = orig_y - SHOT_HEIGHT;
+                if (shot_y_next < Y_MIN) shot_y_next = Y_MIN;
             end
-        end
-        
-        // Deactivate shot immediately when alien is hit
-        if (alien_hit && shot_active && !pause) begin  // Only deactivate when not paused
-            shot_active = 0;
         end
     end
 
@@ -107,9 +122,12 @@ module shot(
         shot_pixel = 0;
         
         // Check if current pixel is within shot boundaries and shot is active
+        // Add additional safety checks to prevent out-of-range issues
         if (shot_active &&
-            (shot_x_l <= pixel_x) && (pixel_x <= shot_x_r) &&
-            (shot_y_t <= pixel_y) && (pixel_y <= shot_y_b)) begin
+            pixel_x >= X_MIN && pixel_x <= X_MAX &&
+            pixel_y >= Y_MIN && pixel_y <= Y_MAX &&
+            pixel_x >= shot_x_l && pixel_x <= shot_x_r &&
+            pixel_y >= shot_y_t && pixel_y <= shot_y_b) begin
             shot_pixel = 1;
         end
     end
