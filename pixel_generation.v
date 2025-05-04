@@ -24,6 +24,7 @@ module pixel_generation(
     input clk,
     input video_on,
     input reset,
+    input pause,            // Add pause input signal
     input left,
     input right,
     input shoot,
@@ -80,7 +81,7 @@ module pixel_generation(
             x_plyr_reg <= X_START;
             //y_plyr_reg <= Y_START;
         end
-        else begin
+        else if(!pause) begin     // Only update when not paused
             x_plyr_reg <= x_plyr_next;
             //y_plyr_reg <= y_plyr_next;
         end
@@ -129,7 +130,7 @@ module pixel_generation(
     
     // Register shot position for collision detection
     always @(posedge clk) begin
-        if (shot_active && shot_pixel) begin
+        if (!pause && shot_active && shot_pixel) begin  // Only update when not paused
             shot_x_pos <= x;
             shot_y_pos <= y;
         end
@@ -147,6 +148,7 @@ module pixel_generation(
     ) alien_ctrl_inst (
         .clk(clk),
         .reset(reset),
+        .pause(pause),           // Add pause signal
         .pixel_x(x),     
         .pixel_y(y),
         .shot_active(shot_active),
@@ -163,12 +165,14 @@ module pixel_generation(
     assign alien_hit = shot_hit;
     
     // Enable shot logic - can shoot when shoot button pressed and no active shot
-    wire shot_enable = shoot && !shot_active;
+    // Only enable shooting when not paused
+    wire shot_enable = !pause && shoot && !shot_active;
     
     // Instantiate the modified shot module
     shot player_shot (
         .s_clk(clk),
         .clk_0(refresh_tick),
+        .pause(pause),           // Add pause signal
         .en(shot_enable),
         .orig_x(x_plyr_reg + (PLAYER_SIZE / 2)),
         .orig_y(y_plyr_t),
@@ -186,7 +190,7 @@ module pixel_generation(
     always @(posedge clk or posedge reset) begin
         if (reset)
             score <= 0;
-        else if (shot_hit)
+        else if (!pause && shot_hit)    // Only update score when not paused
             score <= score + 1;
     end
 
@@ -199,10 +203,32 @@ module pixel_generation(
     assign top_border = ((x >= 0)  && (x < 640)  &&  (y >= 0) && (y < 36)); 
     assign background = ((x >= 32) && (x < 608) && (y >= 36) && (y < 452));
     
+    // === PAUSE SYMBOL ===
+    wire [4:0] pause_rgb;
+    pause_symbol pause_unit(
+        .video_on(video_on),
+        .pixel_x({1'b0, x}),      // Convert 10-bit to 11-bit
+        .pixel_y({1'b0, y}),      // Convert 10-bit to 11-bit
+        .pause_active(pause),
+        .vga_rgb(pause_rgb)
+    );
+    
+    // Convert 5-bit pause RGB to 12-bit
+    wire [11:0] pause_rgb_full;
+    assign pause_rgb_full = {
+        pause_rgb[4:3], 2'b00,   // Red (4-bit)
+        pause_rgb[2:1], 2'b00,   // Green (4-bit)
+        pause_rgb[0], 3'b000      // Blue (4-bit)
+    };
+    
     // === RENDERING LOGIC ===
     always @* begin
         if (~video_on)
             rgb = BLACK;
+            
+        // Show pause symbol when paused (highest priority)
+        else if (pause && pause_rgb != 5'b00000)
+            rgb = pause_rgb_full;
             
         else if (alien_on && background)
             if (&alien_rgb)
