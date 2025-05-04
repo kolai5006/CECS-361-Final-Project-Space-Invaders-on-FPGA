@@ -22,6 +22,7 @@
 module shot(
     input wire s_clk,           // System clock
     input wire clk_0,           // Refresh tick (60Hz)
+    input wire pause,           // Add pause input signal
     input wire en,              // Enable signal to fire a new shot
     input wire [9:0] orig_x,    // Origin X position (from player)
     input wire [9:0] orig_y,    // Origin Y position (from player)
@@ -61,8 +62,10 @@ module shot(
 
     // Shot state update logic
     always @(posedge s_clk) begin
-        shot_x_reg <= shot_x_next;
-        shot_y_reg <= shot_y_next;
+        if (!pause) begin        // Only update when not paused
+            shot_x_reg <= shot_x_next;
+            shot_y_reg <= shot_y_next;
+        end
     end
 
     // Shot movement and activation logic
@@ -72,7 +75,7 @@ module shot(
         shot_y_next = shot_y_reg;
 
         // Shot movement on refresh tick (once per frame)
-        if (clk_0) begin
+        if (clk_0 && !pause) begin   // Only move when not paused
             if (shot_active) begin
                 // Move shot upward
                 shot_y_next = shot_y_reg - SHOT_VELOCITY;
@@ -93,7 +96,7 @@ module shot(
         end
         
         // Deactivate shot immediately when alien is hit
-        if (alien_hit && shot_active) begin
+        if (alien_hit && shot_active && !pause) begin  // Only deactivate when not paused
             shot_active = 0;
         end
     end
