@@ -11,7 +11,13 @@ module vga_top(
     
     output hsync, 
     output vsync,
-    output [11:0] rgb      // 12 FPGA pins for RGB(4 per color)
+    output [11:0] rgb,     // 12 FPGA pins for RGB(4 per color)
+    
+    // Score display outputs
+    output [15:0] led,     // 16 LEDs on FPGA
+    output a, b, c, d, e, f, g, // 7-segment display segments
+    output dp,             // Decimal point
+    output [3:0] an        // Digit enable signals
 );
     
     // Signal Declaration
@@ -139,6 +145,23 @@ module vga_top(
         .pixel_x({1'b0, w_x}),      // Convert 10-bit to 11-bit
         .pixel_y({1'b0, w_y}),      // Convert 10-bit to 11-bit
         .vga_rgb(game_over_rgb)     // 5-bit RGB output
+    );
+    
+    // NEW: Instantiate score display
+    score_display score_display_inst(
+        .clk(clk_100MHz),
+        .reset(reset),
+        .alien_hit(w_alien_hit),
+        .led(led),
+        .a(a),
+        .b(b),
+        .c(c),
+        .d(d),
+        .e(e),
+        .f(f),
+        .g(g),
+        .dp(dp),
+        .an(an)
     );
     
     // Convert 5-bit title RGB to 12-bit
