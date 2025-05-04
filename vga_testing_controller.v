@@ -23,6 +23,7 @@
 module vga_testing_controller(
 input clk_100MHz,   //default clock for the nexys a7 100t
 input reset,        // system reset
+input pause,        // Add pause signal input
 output video_on,    // ON while pixel counts for x and y and within display area
 output hsync,       // horizontal sync
 output vsync,       // vertical sync
