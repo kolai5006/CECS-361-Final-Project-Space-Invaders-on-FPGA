@@ -149,7 +149,7 @@ module vga_top(
     
     // NEW: Instantiate score display
     score_display score_display_inst(
-        .clk(clk_100MHz),
+        .clk_100MHz(clk_100MHz),
         .reset(reset),
         .alien_hit(w_alien_hit),
         .led(led),
