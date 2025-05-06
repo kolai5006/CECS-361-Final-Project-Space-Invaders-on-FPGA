@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Nicholai Agdeppa
 // 
 // Create Date: 04/04/2025 05:46:14 PM
 // Design Name: 
