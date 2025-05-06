@@ -1,24 +1,23 @@
 `timescale 1ns / 1ps
 module score_display(
-    input wire clk_100MHz,        // 100 MHz system clock
+    input wire clk,               // 100 MHz system clock
     input wire reset,             // Reset signal
     input wire alien_hit,         // Signal when alien is hit
     output wire [15:0] led,       // 16 LEDs on FPGA
     output reg a, b, c, d, e, f, g, // 7-segment display segments
     output reg dp,                // Decimal point
-    output reg [3:0] an           // Digit enable signals (ACTIVE LOW)
+    output reg [7:0] an           // 8 Digit enable signals (ACTIVE LOW)
 );
-
     // Define score counter (up to 15 aliens)
     reg [4:0] score;
     
     // Slow clock for display multiplexing
     reg [19:0] refresh_counter = 0;
-    wire [1:0] digit_select;
+    wire [2:0] digit_select;      // 3 bits needed for 8 display positions
     reg [3:0] current_digit;
     
     // Score update logic
-    always @(posedge clk_100MHz or posedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset)
             score <= 0;
         else if (alien_hit && score < 5'd15)
@@ -29,34 +28,34 @@ module score_display(
     assign led = {11'b0, score};
     
     // Refreshing counter (for multiplexing 7-segment display)
-    always @(posedge clk_100MHz or posedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset)
             refresh_counter <= 0;
         else
             refresh_counter <= refresh_counter + 1;
     end
     
-    // Extract the 2 MSBs from the counter for digit selection (0-3)
-    assign digit_select = refresh_counter[19:18];
+    // Extract bits from the counter for digit selection (0-7)
+    assign digit_select = refresh_counter[19:17];
     
     // Digit multiplexing using active LOW anodes
     // We'll only enable the two rightmost digits
     always @(*) begin
         // Default: all displays off
-        an = 4'b1111;
+        an = 8'b11111111;
         
         case (digit_select)
-            2'b00: begin
+            7'b0000000: begin
                 // Rightmost digit (ones place)
-                an = 4'b1110; // Only rightmost digit active
+                an = 8'b11111110; // Only rightmost digit active
                 if (score < 10)
                     current_digit = score[3:0];
                 else
                     current_digit = score - 10; // For scores 10-15
             end
-            2'b01: begin
+            7'b0000001: begin
                 // Second digit from right (tens place)
-                an = 4'b1101; // Only second-from-right digit active
+                an = 8'b11111101; // Only second-from-right digit active
                 if (score < 10)
                     current_digit = 0;
                 else
@@ -64,7 +63,7 @@ module score_display(
             end
             default: begin
                 // All other digit positions (not used)
-                an = 4'b1111; // All digits off
+                an = 8'b11111111; // All digits off
                 current_digit = 0;
             end
         endcase
@@ -91,5 +90,4 @@ module score_display(
             default: {a, b, c, d, e, f, g} = 7'b1111111; // All segments off
         endcase
     end
-
 endmodule
