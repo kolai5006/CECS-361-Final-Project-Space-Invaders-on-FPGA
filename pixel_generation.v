@@ -48,7 +48,7 @@ module pixel_generation(
     parameter BLACK  = 12'h000;    
 
     //Player parameters
-    parameter PLAYER_SIZE = 32;           // Reduced from 32
+    parameter PLAYER_SIZE = 32;           
     parameter X_START = 320;
     parameter Y_START = 420;              // Moved up slightly
     
