@@ -1,3 +1,14 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: Ayleen Perez
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module lebron_credit(
     input wire video_on,
     input wire [10:0] pixel_x, pixel_y,
@@ -70,12 +81,12 @@ module lebron_credit(
         end
     end
     
-    // Function to map position to character for "? LEBRON VER ?"
+    // Function to map position 
     function [4:0] get_lebron_char;
         input [4:0] pos;
         begin
             case (pos)
-                0: get_lebron_char = 20;  // '?' (heart)
+                0: get_lebron_char = 20;  // square
                 1: get_lebron_char = 31;  // ' ' (space)
                 2: get_lebron_char = 11;  // 'L'
                 3: get_lebron_char = 4;   // 'E'
@@ -87,8 +98,8 @@ module lebron_credit(
                 9: get_lebron_char = 21;  // 'V'
                 10: get_lebron_char = 4;  // 'E'
                 11: get_lebron_char = 17; // 'R'
-                12: get_lebron_char = 31; // ' ' (space) - Added space before the final heart
-                13: get_lebron_char = 20; // '?' (heart)
+                12: get_lebron_char = 31; // ' ' (space) 
+                13: get_lebron_char = 20; // square
                 default: get_lebron_char = 31; // Invalid
             endcase
         end
