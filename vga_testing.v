@@ -1,4 +1,14 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: Ayleen Perez & Nicholai Agdeppa & Billy Domingo
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module vga_top(
     input clk_100MHz,      // nexys a7 clock speed
     input reset,
@@ -117,7 +127,7 @@ module vga_top(
         .rgb(game_rgb_next),
         .game_over(w_game_over),
         .alien_hit(w_alien_hit),
-        .win(w_win)                       // Connect win signal
+        .win(w_win)                       
     );
     
     // Instantiate title screen
