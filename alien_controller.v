@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: Nicholai Agdeppa
+// Engineer: Nicholai Agdeppa & Ayleen Perez
 // 
 // Create Date: 04/27/2025 09:34:40 PM
 // Design Name: 
@@ -162,8 +162,7 @@ module alien_controller(
                     end
                 end
                 
-                // NEW: Check if aliens reached player's y position (game over)
-                // We check if the bottom of the alien block has reached the player's y level
+                // Check if aliens reached player's y position (game over)
                 if (y_offset + BLOCK_HEIGHT >= player_y)
                     game_over <= 1;
             end
