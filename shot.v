@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: Nicholai Agdeppa
+// Engineer: Nicholai Agdeppa & Ayleen Perez
 // 
 // Create Date: 04/28/2025
 // Design Name: 
