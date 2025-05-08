@@ -1,3 +1,14 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: Ayleen Perez & Billy Domingo
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module title_rgb(
     input wire video_on,
     input wire [10:0] pixel_x, pixel_y,
@@ -14,7 +25,7 @@ module title_rgb(
     localparam COLOR_GREEN = 5'b00111; // For "INVADERS"
     localparam COLOR_RED = 5'b11000;   // For "SPACE"
     localparam COLOR_PURPLE = 5'b11001; // For "SWITCH TO START"
-    localparam COLOR_WHITE = 5'b11111; // For "? LEBRON VER ?"
+    localparam COLOR_WHITE = 5'b11111; // For "LEBRON VER"
     
     // Wires for title_letters, flick_switch and lebron_credit outputs
     wire [4:0] title_rgb;
