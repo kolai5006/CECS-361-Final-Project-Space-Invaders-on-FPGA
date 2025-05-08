@@ -1,4 +1,14 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: Ayleen Perez & Billy Domingo
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module score_display(
     input wire clk,               // 100 MHz system clock
     input wire reset,             // Reset signal
