@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: Nicholai Agdeppa
+// Engineer: Nicholai Agdeppa & Ayleen Perez & Billy Domingo
 // 
 // Create Date: 04/15/2025 12:29:25 PM
 // Design Name: 
@@ -146,10 +146,10 @@ module pixel_generation(
     ) alien_ctrl_inst (
         .clk(clk),
         .reset(reset),
-        .pause(pause),           // Add pause signal
+        .pause(pause),           
         .pixel_x(x),     
         .pixel_y(y),
-        .player_y(y_plyr_t),     // NEW: Pass player's y position for game over check
+        .player_y(y_plyr_t),     
         .shot_active(shot_active),
         .shot_x(shot_x_pos),
         .shot_y(shot_y_pos),
@@ -157,7 +157,7 @@ module pixel_generation(
         .alien_rgb(alien_rgb),
         .shot_hit(shot_hit),
         .game_over(game_over_crtl),
-        .win(win_ctrl)           // Connect win signal
+        .win(win_ctrl)           
     );
     
     // Connect module signals to outputs
@@ -173,7 +173,7 @@ module pixel_generation(
     shot player_shot (
         .s_clk(clk),
         .clk_0(refresh_tick),
-        .pause(pause),           // Add pause signal
+        .pause(pause),           
         .en(shot_enable),
         .orig_x(x_plyr_reg + (PLAYER_SIZE / 2)),
         .orig_y(y_plyr_t),
