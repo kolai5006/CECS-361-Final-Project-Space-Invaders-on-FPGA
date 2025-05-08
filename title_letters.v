@@ -1,5 +1,14 @@
-// title_letters.v - Contains the rendering logic for the "SPACE INVADERS" text
-
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: Ayleen Perez
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module title_letters(
     input wire video_on,
     input wire [10:0] pixel_x, pixel_y,
@@ -63,7 +72,7 @@ module title_letters(
             current_letter = 31;
             letter_x = 0;
             
-            // Draw "SPACE" text with no flickering
+            // Draw "SPACE" text 
             if (in_space_row && title_visible) begin
                 // "SPACE" - efficient letter detection
                 if (pixel_x >= SPACE_X_START && pixel_x < SPACE_X_START + 5*LETTER_WIDTH + 4*LETTER_SPACING) begin
@@ -104,7 +113,7 @@ module title_letters(
                 end
             end
             
-            // Draw "INVADERS" text with no flickering
+            // Draw "INVADERS" text 
             else if (in_invaders_row && title_visible) begin
                 // "INVADERS" - efficient letter detection
                 if (pixel_x >= INVADERS_X_START && pixel_x < INVADERS_X_START + 8*LETTER_WIDTH + 7*LETTER_SPACING) begin
