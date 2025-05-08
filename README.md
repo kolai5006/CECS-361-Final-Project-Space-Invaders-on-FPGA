@@ -18,3 +18,4 @@ Other notations:
 - If you are referencing this github, changing the parameter values for either the shot or alien controller is very buggy and often will show out-of-range errors.
 - This version of Space Invaders does not include the aliens to shoot back and include additional player lives.
 - To understand our project better and what we referenced, please look at the report included in here.
+- Project was also completed and finished within a month
